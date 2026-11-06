@@ -1,0 +1,12 @@
+<div class="rating-control" role="group" aria-label="Rating">
+    @for (var star = 1; star <= 5; star++)
+    {
+        var selected = star <= Value;
+        <button type="button" class="star-button @(selected ? "selected" : "")" aria-label="@($"{star} stars")" @onclick="() => OnChange.InvokeAsync(star)">★</button>
+    }
+</div>
+
+@code {
+    [Parameter] public int Value { get; set; }
+    [Parameter] public EventCallback<int> OnChange { get; set; }
+}

@@ -1,0 +1,29 @@
+@using RecordCollection.Models
+<article class="record-card">
+    <div class="record-art">
+        @if (!string.IsNullOrWhiteSpace(Record.CoverImagePath))
+        {
+            <img src="@Record.CoverImagePath" alt="@($"{Record.AlbumTitle} cover")" />
+        }
+        else
+        {
+            <div class="art-placeholder"><span>♫</span><small>@Record.Artist</small></div>
+        }
+        <span class="format-pill">@Record.Format</span>
+    </div>
+    <div class="record-card-body">
+        <div class="record-artist">@Record.Artist</div>
+        <h3>@Record.AlbumTitle</h3>
+        <div class="record-meta">@Record.ReleaseYear <span>·</span> @Record.Genre</div>
+        <div class="record-card-bottom">
+            <span class="stars-display">@(new string('★', Record.Rating))@(new string('☆', 5 - Record.Rating))</span>
+            <span>@Record.PlayCount plays</span>
+        </div>
+        @if (Actions is not null) { <div class="record-actions">@Actions</div> }
+    </div>
+</article>
+
+@code {
+    [Parameter, EditorRequired] public VinylRecord Record { get; set; } = new();
+    [Parameter] public RenderFragment? Actions { get; set; }
+}

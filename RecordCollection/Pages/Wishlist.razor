@@ -1,0 +1,59 @@
+@page "/wishlist"
+@using RecordCollection.Models
+@inject IRecordService RecordService
+@inject IWishlistService WishlistService
+@inject CollectionState State
+@inject IJSRuntime JS
+
+<PageTitle>Wishlist · Needle Drop</PageTitle>
+<PageHeader Eyebrow="THE HUNT" Title="The wishlist" Description="Keep track of the records you’re still chasing.">
+    <Actions><button class="btn btn-dark" @onclick="NewItem">＋ Add to wishlist</button></Actions>
+</PageHeader>
+<div class="wishlist-summary"><span><strong>@State.Wishlist.Count</strong> records on the hunt</span><span>Target total <strong>@State.Wishlist.Where(x => x.TargetPrice.HasValue).Sum(x => x.TargetPrice!.Value).ToString("C")</strong></span></div>
+
+@if (editing is not null)
+{
+    <EditForm Model="editing" OnValidSubmit="SaveAsync" class="form-card wishlist-form">
+        <DataAnnotationsValidator /><ValidationSummary />
+        <div class="panel-heading"><h2>@(editing.Id == Guid.Empty ? "Add a record to your list" : "Edit wishlist record")</h2><button type="button" class="close-button" @onclick="() => editing = null">×</button></div>
+        <div class="row g-3">
+            <div class="col-md-6"><label class="form-label">Artist <span class="required">*</span></label><InputText class="form-control" @bind-Value="editing.Artist" /></div>
+            <div class="col-md-6"><label class="form-label">Album title <span class="required">*</span></label><InputText class="form-control" @bind-Value="editing.AlbumTitle" /></div>
+            <div class="col-md-6"><label class="form-label">Desired pressing</label><InputText class="form-control" @bind-Value="editing.DesiredPressing" placeholder="First pressing, 180g reissue…" /></div>
+            <div class="col-md-3"><label class="form-label">Target price</label><InputNumber class="form-control" @bind-Value="editing.TargetPrice" /></div>
+            <div class="col-md-3"><label class="form-label">Priority</label><InputSelect class="form-select" @bind-Value="editing.Priority"><option>Low</option><option>Medium</option><option>High</option></InputSelect></div>
+            <div class="col-12"><label class="form-label">Notes</label><InputTextArea class="form-control" @bind-Value="editing.Notes" rows="2" /></div>
+        </div>
+        <div class="form-footer"><button type="button" class="btn btn-light" @onclick="() => editing = null">Cancel</button><button type="submit" class="btn btn-dark">Save to wishlist</button></div>
+    </EditForm>
+}
+
+@if (State.Wishlist.Count == 0)
+{
+    <EmptyState Icon="♡" Title="Every great collection has a next record" Message="Add an album you’re looking for and keep an eye on your target price."><button class="btn btn-dark" @onclick="NewItem">Add to wishlist</button></EmptyState>
+}
+else
+{
+    <div class="wishlist-grid">
+        @foreach (var item in State.Wishlist.OrderByDescending(x => x.Priority == "High").ThenBy(x => x.Artist))
+        {
+            <article class="wishlist-card">
+                <div class="wishlist-record-mark">♫</div>
+                <div class="wishlist-card-content"><div class="wishlist-top"><span class="priority-pill @item.Priority.ToLowerInvariant()">@item.Priority priority</span><button class="more-button" title="Edit" @onclick="() => Edit(item)">···</button></div><div class="record-artist">@item.Artist</div><h3>@item.AlbumTitle</h3><div class="record-meta">@(string.IsNullOrWhiteSpace(item.DesiredPressing) ? "Any pressing" : item.DesiredPressing)</div>
+                    @if (!string.IsNullOrWhiteSpace(item.Notes)) { <p class="wishlist-notes">@item.Notes</p> }
+                    <div class="wishlist-bottom"><span>Target <strong>@(item.TargetPrice?.ToString("C") ?? "No limit")</strong></span><div><button class="btn btn-sm btn-outline-secondary" @onclick="() => AcquiredAsync(item.Id)">Got it ✓</button><button class="btn btn-sm btn-link text-danger" @onclick="() => DeleteAsync(item.Id)">Remove</button></div></div>
+                </div>
+            </article>
+        }
+    </div>
+}
+
+@code {
+    private WishlistItem? editing;
+    protected override async Task OnInitializedAsync() => await RecordService.InitializeAsync();
+    private void NewItem() => editing = new WishlistItem();
+    private void Edit(WishlistItem item) => editing = new WishlistItem { Id = item.Id, Artist = item.Artist, AlbumTitle = item.AlbumTitle, DesiredPressing = item.DesiredPressing, TargetPrice = item.TargetPrice, Priority = item.Priority, Notes = item.Notes };
+    private async Task SaveAsync() { if (editing is null) return; await WishlistService.SaveAsync(editing); editing = null; }
+    private async Task DeleteAsync(Guid id) { if (await JS.InvokeAsync<bool>("confirm", "Remove this album from your wishlist?")) await WishlistService.DeleteAsync(id); }
+    private async Task AcquiredAsync(Guid id) { await WishlistService.MarkAcquiredAsync(id); }
+}

@@ -1,0 +1,100 @@
+{
+  "records": [
+    {
+      "id": "51642ac0-c1db-4a2d-b20d-2352e5e01b79",
+      "artist": "Fleetwood Mac",
+      "albumTitle": "Rumours",
+      "releaseYear": 1977,
+      "genre": "Rock",
+      "label": "Warner Bros.",
+      "catalogNumber": "BSK 3010",
+      "format": "LP",
+      "condition": "Very Good+",
+      "purchasePrice": 28.5,
+      "purchaseDate": "2024-02-14T00:00:00",
+      "storageLocation": "Shelf A",
+      "notes": "A particularly clean copy. Found at the neighborhood record fair.",
+      "playCount": 18,
+      "lastPlayed": "2025-01-08T20:30:00",
+      "rating": 5,
+      "tags": ["classic", "favorite"],
+      "coverImagePath": null
+    },
+    {
+      "id": "b31d94eb-c9a7-4af6-96cf-a84255c33107",
+      "artist": "Nina Simone",
+      "albumTitle": "Pastel Blues",
+      "releaseYear": 1965,
+      "genre": "Jazz",
+      "label": "Philips",
+      "catalogNumber": "PHS 600-187",
+      "format": "LP",
+      "condition": "Near Mint",
+      "purchasePrice": 34,
+      "purchaseDate": "2024-04-20T00:00:00",
+      "storageLocation": "Shelf B",
+      "notes": "",
+      "playCount": 9,
+      "lastPlayed": "2025-01-05T19:00:00",
+      "rating": 5,
+      "tags": ["jazz", "vocal"],
+      "coverImagePath": null
+    },
+    {
+      "id": "ab487ae9-e8d6-4d08-8973-10e6bb2b3374",
+      "artist": "Khruangbin",
+      "albumTitle": "Con Todo El Mundo",
+      "releaseYear": 2018,
+      "genre": "Psychedelic",
+      "label": "Dead Oceans",
+      "catalogNumber": "DOC150",
+      "format": "LP",
+      "condition": "Very Good+",
+      "purchasePrice": 24,
+      "purchaseDate": "2024-06-02T00:00:00",
+      "storageLocation": "Shelf C",
+      "notes": "",
+      "playCount": 6,
+      "lastPlayed": "2025-01-02T21:15:00",
+      "rating": 4,
+      "tags": ["chill", "modern"],
+      "coverImagePath": null
+    },
+    {
+      "id": "1fb61383-18d2-48ab-b988-757298f4999a",
+      "artist": "Joni Mitchell",
+      "albumTitle": "Blue",
+      "releaseYear": 1971,
+      "genre": "Folk",
+      "label": "Reprise",
+      "catalogNumber": "MS 2038",
+      "format": "LP",
+      "condition": "Very Good",
+      "purchasePrice": 31,
+      "purchaseDate": "2024-09-10T00:00:00",
+      "storageLocation": "Shelf A",
+      "notes": "",
+      "playCount": 11,
+      "lastPlayed": null,
+      "rating": 5,
+      "tags": ["songwriter"],
+      "coverImagePath": null
+    }
+  ],
+  "wishlist": [
+    {
+      "id": "1fb61383-18d2-48ab-b988-757298f499aa",
+      "artist": "Sade",
+      "albumTitle": "Love Deluxe",
+      "desiredPressing": "Original 1992 pressing",
+      "targetPrice": 45,
+      "priority": "High",
+      "notes": "Keep an eye out for a clean copy."
+    }
+  ],
+  "settings": {
+    "autoBackupEnabled": true,
+    "backupLocation": "Browser storage",
+    "defaultSortOrder": "Artist"
+  }
+}

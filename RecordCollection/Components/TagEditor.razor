@@ -1,0 +1,38 @@
+<div class="tag-editor">
+    <div class="tag-list">
+        @foreach (var tag in Tags)
+        {
+            <button type="button" class="tag-chip" title="Remove tag" @onclick="() => RemoveAsync(tag)">@tag <span>×</span></button>
+        }
+    </div>
+    <div class="input-group">
+        <input class="form-control" placeholder="Add a tag" @bind="newTag" @bind:event="oninput" @onkeydown="HandleKey" />
+        <button class="btn btn-outline-secondary" type="button" @onclick="AddAsync">Add</button>
+    </div>
+</div>
+
+@code {
+    [Parameter] public List<string> Tags { get; set; } = [];
+    [Parameter] public EventCallback<List<string>> TagsChanged { get; set; }
+    private string newTag = string.Empty;
+
+    private async Task HandleKey(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter") await AddAsync();
+    }
+
+    private async Task AddAsync()
+    {
+        var tag = newTag.Trim();
+        if (tag.Length == 0 || Tags.Contains(tag, StringComparer.OrdinalIgnoreCase)) return;
+        Tags = [.. Tags, tag];
+        newTag = string.Empty;
+        await TagsChanged.InvokeAsync(Tags);
+    }
+
+    private async Task RemoveAsync(string tag)
+    {
+        Tags = Tags.Where(x => x != tag).ToList();
+        await TagsChanged.InvokeAsync(Tags);
+    }
+}

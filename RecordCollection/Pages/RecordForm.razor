@@ -1,0 +1,116 @@
+@page "/records/new"
+@page "/records/edit/{RecordId:guid}"
+@using RecordCollection.Models
+@inject IRecordService RecordService
+@inject CollectionState State
+@inject NavigationManager Navigation
+@inject ILogger<RecordForm> Logger
+
+<PageTitle>@(IsEditing ? "Edit record" : "Add a record") · Needle Drop</PageTitle>
+<PageHeader Eyebrow="YOUR COLLECTION" Title="@(IsEditing ? "Edit record" : "Add a record")" Description="Capture the details that make this pressing yours." />
+@if (!string.IsNullOrEmpty(errorMessage)) { <div class="alert alert-danger form-card">@errorMessage</div> }
+
+<EditForm Model="record" OnValidSubmit="SaveAsync" class="form-card">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="form-section-title">The essentials</div>
+    <div class="row g-3">
+        <div class="col-md-6"><label class="form-label">Artist <span class="required">*</span></label><InputText class="form-control" @bind-Value="record.Artist" placeholder="e.g. Fleetwood Mac" /><ValidationMessage For="() => record.Artist" /></div>
+        <div class="col-md-6"><label class="form-label">Album title <span class="required">*</span></label><InputText class="form-control" @bind-Value="record.AlbumTitle" placeholder="e.g. Rumours" /><ValidationMessage For="() => record.AlbumTitle" /></div>
+        <div class="col-md-3"><label class="form-label">Release year</label><InputNumber class="form-control" @bind-Value="record.ReleaseYear" /></div>
+        <div class="col-md-3"><label class="form-label">Genre</label><InputText class="form-control" @bind-Value="record.Genre" placeholder="Rock" /></div>
+        <div class="col-md-3"><label class="form-label">Format</label><InputSelect class="form-select" @bind-Value="record.Format"><option>LP</option><option>12&quot;</option><option>10&quot;</option><option>7&quot;</option><option>Box set</option><option>Other</option></InputSelect></div>
+        <div class="col-md-3"><label class="form-label">Condition</label><InputSelect class="form-select" @bind-Value="record.Condition"><option>Mint</option><option>Near Mint</option><option>Very Good+</option><option>Very Good</option><option>Good</option><option>Fair</option></InputSelect></div>
+        <div class="col-md-6"><label class="form-label">Label</label><InputText class="form-control" @bind-Value="record.Label" /></div>
+        <div class="col-md-6"><label class="form-label">Catalog number</label><InputText class="form-control" @bind-Value="record.CatalogNumber" /></div>
+    </div>
+    <hr />
+    <div class="form-section-title">The story</div>
+    <div class="row g-3">
+        <div class="col-md-4"><label class="form-label">Purchase price</label><div class="input-group"><span class="input-group-text">$</span><InputNumber class="form-control" @bind-Value="record.PurchasePrice" /></div></div>
+        <div class="col-md-4"><label class="form-label">Purchase date</label><InputDate class="form-control" @bind-Value="record.PurchaseDate" /></div>
+        <div class="col-md-4"><label class="form-label">Storage location</label><InputText class="form-control" @bind-Value="record.StorageLocation" placeholder="Shelf A" /></div>
+        <div class="col-12"><label class="form-label">Notes</label><InputTextArea class="form-control" @bind-Value="record.Notes" rows="3" /></div>
+        <div class="col-md-6"><label class="form-label">Your rating</label><RatingControl Value="record.Rating" OnChange="SetRating" /></div>
+        <div class="col-md-6"><label class="form-label">Tags</label><TagEditor @bind-Tags="record.Tags" /></div>
+        <div class="col-12"><label class="form-label">Cover image</label><InputFile OnChange="UploadCoverAsync" accept="image/*" class="form-control" /><div class="form-hint">Images are saved in this browser with your collection (max 2 MB).</div>@if (!string.IsNullOrEmpty(uploadError)) { <div class="validation-message">@uploadError</div> }@if (!string.IsNullOrEmpty(record.CoverImagePath)) { <img class="cover-preview" src="@record.CoverImagePath" alt="Cover preview" /> }</div>
+    </div>
+    <div class="form-footer"><button type="button" class="btn btn-light" @onclick='() => Navigation.NavigateTo("/records")'>Cancel</button><button type="submit" class="btn btn-dark">@(IsEditing ? "Save changes" : "Add to collection")</button></div>
+</EditForm>
+
+@code {
+    [Parameter] public Guid? RecordId { get; set; }
+    private VinylRecord record = new();
+    private string? errorMessage;
+    private string? uploadError;
+    private bool IsEditing => RecordId.HasValue;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await RecordService.InitializeAsync();
+        if (RecordId is { } id)
+        {
+            if (State.Records.FirstOrDefault(x => x.Id == id) is not { } current)
+            {
+                Navigation.NavigateTo("/records");
+                return;
+            }
+            record = new VinylRecord
+            {
+                Id = current.Id, Artist = current.Artist, AlbumTitle = current.AlbumTitle, ReleaseYear = current.ReleaseYear,
+                Genre = current.Genre, Label = current.Label, CatalogNumber = current.CatalogNumber, Format = current.Format,
+                Condition = current.Condition, PurchasePrice = current.PurchasePrice, PurchaseDate = current.PurchaseDate,
+                StorageLocation = current.StorageLocation, Notes = current.Notes, PlayCount = current.PlayCount,
+                LastPlayed = current.LastPlayed, Rating = current.Rating, Tags = [.. current.Tags], CoverImagePath = current.CoverImagePath
+            };
+        }
+        else
+        {
+            record = new VinylRecord();
+        }
+    }
+
+    private void SetRating(int value) => record.Rating = value;
+
+    private async Task UploadCoverAsync(InputFileChangeEventArgs args)
+    {
+        var file = args.File;
+        if (!file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+        {
+            uploadError = "Choose an image file.";
+            return;
+        }
+        if (file.Size > 2_000_000)
+        {
+            uploadError = "The image is larger than 2 MB.";
+            return;
+        }
+        try
+        {
+            await using var stream = file.OpenReadStream(2_000_000);
+            using var memory = new MemoryStream();
+            await stream.CopyToAsync(memory);
+            record.CoverImagePath = $"data:{file.ContentType};base64,{Convert.ToBase64String(memory.ToArray())}";
+            uploadError = null;
+        }
+        catch (IOException exception)
+        {
+            Logger.LogWarning(exception, "Could not read uploaded cover image.");
+            uploadError = "The selected image could not be read.";
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        try
+        {
+            await RecordService.SaveAsync(record);
+            Navigation.NavigateTo("/records");
+        }
+        catch (Exception exception)
+        {
+            Logger.LogError(exception, "Could not save record.");
+            errorMessage = "The record could not be saved to browser storage. Export a backup or free up storage, then try again.";
+        }
+    }
+}

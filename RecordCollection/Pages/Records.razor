@@ -1,0 +1,108 @@
+@page "/records"
+@using RecordCollection.Models
+@inject IRecordService RecordService
+@inject CollectionState State
+
+<PageTitle>Your records · Needle Drop</PageTitle>
+<PageHeader Eyebrow="THE CRATE" Title="All your records" Description="@($"{FilteredRecords.Count} records, carefully collected.")">
+    <Actions><a class="btn btn-dark" href="/records/new">＋ Add a record</a></Actions>
+</PageHeader>
+
+<div class="filter-panel">
+    <SearchBar @bind-Value="search" Placeholder="Search artist, album, label…" />
+    <select class="form-select" @bind="genre"><option value="">All genres</option>@foreach (var item in State.Records.Select(x => x.Genre).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().Order()) { <option>@item</option> }</select>
+    <select class="form-select" @bind="condition"><option value="">Any condition</option>@foreach (var item in State.Records.Select(x => x.Condition).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().Order()) { <option>@item</option> }</select>
+    <select class="form-select" @bind="format"><option value="">Any format</option>@foreach (var item in State.Records.Select(x => x.Format).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().Order()) { <option>@item</option> }</select>
+    <select class="form-select sort-select" @bind="sort"><option value="Artist">Artist A–Z</option><option value="Album">Album A–Z</option><option value="Year">Release year</option><option value="Purchase Date">Purchase date</option><option value="Purchase Price">Price</option><option value="Rating">Rating</option><option value="Most Played">Most played</option><option value="Recently Played">Recently played</option></select>
+    <div class="view-toggle"><button class="@(view == "grid" ? "active" : "")" @onclick='() => view = "grid"' title="Card view">▦</button><button class="@(view == "table" ? "active" : "")" @onclick='() => view = "table"' title="Table view">☷</button></div>
+</div>
+<ConfirmationDialog Show="showDeleteConfirmation" Title="Remove this record?" Message="This record will be removed from your collection. You can’t undo this action." ConfirmText="Remove record" OnConfirm="ConfirmDeleteAsync" OnCancel="CancelDelete" />
+<div class="filter-tags">
+    <select class="form-select tag-filter" @bind="selectedTag"><option value="">Filter by tag</option>@foreach (var tag in State.Records.SelectMany(x => x.Tags).Distinct().Order()) { <option>@tag</option> }</select>
+    <input class="form-control location-filter" placeholder="Storage location" @bind="location" @bind:event="oninput" />
+    <select class="form-select rating-filter" @bind="rating"><option value="0">Any rating</option>@for (var value = 5; value >= 1; value--) { <option value="@value">@value stars</option> }</select>
+    @if (HasFilters) { <button class="btn btn-link btn-sm" @onclick="ClearFilters">Clear filters ×</button> }
+</div>
+
+@if (!State.Records.Any())
+{
+    <EmptyState Icon="♫" Title="Nothing in the crate yet" Message="Add your first record or import a collection to get started."><a class="btn btn-dark" href="/records/new">Add a record</a> <a class="btn btn-outline-secondary" href="/import-export">Import collection</a></EmptyState>
+}
+else if (FilteredRecords.Count == 0)
+{
+    <EmptyState Icon="⌕" Title="No records found" Message="Try another search or clear your filters."><button class="btn btn-outline-secondary" @onclick="ClearFilters">Clear filters</button></EmptyState>
+}
+else if (view == "grid")
+{
+    <div class="record-grid">
+        @foreach (var record in FilteredRecords)
+        {
+            <RecordCard Record="record">
+                <Actions><a class="btn btn-sm btn-light" href="@($"/records/edit/{record.Id}")">Edit</a><button class="btn btn-sm btn-light" @onclick="() => PlayAsync(record.Id)">▶ Played today</button><button class="btn btn-sm btn-light text-danger" @onclick="() => DeleteAsync(record.Id)">Delete</button></Actions>
+            </RecordCard>
+        }
+    </div>
+}
+else
+{
+    <div class="table-responsive records-table-wrap"><table class="table records-table align-middle"><thead><tr><th>RECORD</th><th>YEAR</th><th>GENRE</th><th>CONDITION</th><th>PRICE</th><th>RATING</th><th>PLAYS</th><th></th></tr></thead><tbody>
+        @foreach (var record in FilteredRecords)
+        {
+            <tr><td><a class="table-record" href="@($"/records/edit/{record.Id}")"><span class="table-cover">@if (!string.IsNullOrEmpty(record.CoverImagePath)) { <img src="@record.CoverImagePath" alt="" /> } else { <span>♫</span> }</span><span><strong>@record.AlbumTitle</strong><small>@record.Artist</small></span></a></td><td>@(record.ReleaseYear?.ToString() ?? "—")</td><td>@(string.IsNullOrEmpty(record.Genre) ? "—" : record.Genre)</td><td><span class="condition-pill">@record.Condition</span></td><td>@(record.PurchasePrice?.ToString("C") ?? "—")</td><td><span class="stars-display">@(new string('★', record.Rating))</span></td><td>@record.PlayCount</td><td><div class="table-actions"><a href="@($"/records/edit/{record.Id}")">Edit</a><button @onclick="() => PlayAsync(record.Id)">Played</button><button class="danger-link" @onclick="() => DeleteAsync(record.Id)">Delete</button></div></td></tr>
+        }
+    </tbody></table></div>
+}
+
+@code {
+    private string search = "", genre = "", condition = "", format = "", selectedTag = "", location = "", sort = "Artist", view = "grid";
+    private int rating;
+    private Guid? recordToDelete;
+    private bool showDeleteConfirmation;
+    private bool HasFilters => search.Length > 0 || genre.Length > 0 || condition.Length > 0 || format.Length > 0 || selectedTag.Length > 0 || location.Length > 0 || rating > 0;
+    private List<VinylRecord> FilteredRecords
+    {
+        get
+        {
+            IEnumerable<VinylRecord> result = State.Records;
+            if (!string.IsNullOrWhiteSpace(search)) result = result.Where(x => $"{x.Artist} {x.AlbumTitle} {x.Genre} {x.Label}".Contains(search, StringComparison.OrdinalIgnoreCase));
+            if (genre.Length > 0) result = result.Where(x => x.Genre == genre);
+            if (condition.Length > 0) result = result.Where(x => x.Condition == condition);
+            if (format.Length > 0) result = result.Where(x => x.Format == format);
+            if (selectedTag.Length > 0) result = result.Where(x => x.Tags.Contains(selectedTag, StringComparer.OrdinalIgnoreCase));
+            if (location.Length > 0) result = result.Where(x => x.StorageLocation.Contains(location, StringComparison.OrdinalIgnoreCase));
+            if (rating > 0) result = result.Where(x => x.Rating == rating);
+            return (sort switch
+            {
+                "Album" => result.OrderBy(x => x.AlbumTitle),
+                "Year" => result.OrderByDescending(x => x.ReleaseYear),
+                "Purchase Date" => result.OrderByDescending(x => x.PurchaseDate),
+                "Purchase Price" => result.OrderByDescending(x => x.PurchasePrice),
+                "Rating" => result.OrderByDescending(x => x.Rating),
+                "Most Played" => result.OrderByDescending(x => x.PlayCount),
+                "Recently Played" => result.OrderByDescending(x => x.LastPlayed),
+                _ => result.OrderBy(x => x.Artist)
+            }).ToList();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RecordService.InitializeAsync();
+        if (!string.IsNullOrWhiteSpace(State.Settings.DefaultSortOrder))
+            sort = State.Settings.DefaultSortOrder;
+    }
+    private void ClearFilters() { search = genre = condition = format = selectedTag = location = ""; rating = 0; }
+    private async Task PlayAsync(Guid id) => await RecordService.MarkPlayedAsync(id);
+    private void DeleteAsync(Guid id)
+    {
+        recordToDelete = id;
+        showDeleteConfirmation = true;
+    }
+    private async Task ConfirmDeleteAsync()
+    {
+        if (recordToDelete.HasValue)
+            await RecordService.DeleteAsync(recordToDelete.Value);
+        CancelDelete();
+    }
+    private void CancelDelete() { showDeleteConfirmation = false; recordToDelete = null; }
+}

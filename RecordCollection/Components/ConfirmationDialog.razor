@@ -1,0 +1,23 @@
+@if (Show)
+{
+    <div class="dialog-backdrop" role="presentation">
+        <section class="confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title">
+            <div class="eyebrow">PLEASE CONFIRM</div>
+            <h2 id="confirm-title">@Title</h2>
+            <p>@Message</p>
+            <div class="dialog-actions">
+                <button class="btn btn-light" @onclick="OnCancel">Cancel</button>
+                <button class="btn btn-dark" @onclick="OnConfirm">@ConfirmText</button>
+            </div>
+        </section>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Show { get; set; }
+    [Parameter] public string Title { get; set; } = "Are you sure?";
+    [Parameter] public string Message { get; set; } = "This action cannot be undone.";
+    [Parameter] public string ConfirmText { get; set; } = "Confirm";
+    [Parameter] public EventCallback OnConfirm { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+}

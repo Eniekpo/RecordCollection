@@ -1,0 +1,4 @@
+/Users/yoletech/RecordCollection/RecordCollection/bin/Release/net10.0/publish/wwwroot/index.html
+/Users/yoletech/RecordCollection/RecordCollection/bin/Release/net10.0/publish/RecordCollection.runtimeconfig.json
+/Users/yoletech/RecordCollection/RecordCollection/bin/Release/net10.0/publish/dotnet.js
+/Users/yoletech/RecordCollection/RecordCollection/bin/Release/net10.0/publish/web.config

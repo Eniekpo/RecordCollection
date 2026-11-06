@@ -1,0 +1,38 @@
+@page "/statistics"
+@inject IRecordService RecordService
+@inject IStatisticsService StatisticsService
+@inject CollectionState State
+
+<PageTitle>Statistics · Needle Drop</PageTitle>
+<PageHeader Eyebrow="THE BIG PICTURE" Title="Collection notes" Description="A few numbers that tell the story of your listening life." />
+@if (State.IsLoaded)
+{
+    var stats = StatisticsService.Calculate(State.Records);
+    <div class="stat-grid stats-grid">
+        <div class="stat-card"><div class="stat-label">TOTAL RECORDS</div><div class="stat-number">@stats.TotalRecords</div><div class="stat-foot">across your collection</div></div>
+        <div class="stat-card"><div class="stat-label">ARTISTS</div><div class="stat-number">@stats.TotalArtists</div><div class="stat-foot">distinct artists</div></div>
+        <div class="stat-card"><div class="stat-label">TOTAL PURCHASE VALUE</div><div class="stat-number stat-currency">@stats.TotalCollectionValue.ToString("C0")</div><div class="stat-foot">known purchase prices</div></div>
+        <div class="stat-card"><div class="stat-label">AVERAGE PRICE</div><div class="stat-number stat-currency">@(stats.AveragePurchasePrice?.ToString("C") ?? "—")</div><div class="stat-foot">per priced record</div></div>
+    </div>
+    <div class="dashboard-grid stats-panels">
+        <section class="panel breakdown-panel"><div class="panel-heading"><div><div class="eyebrow">THE SOUNDS</div><h2>Genre breakdown</h2></div></div>
+            @if (stats.GenreBreakdown.Count == 0) { <p class="muted-copy">Genre breakdown will show up once you add some records.</p> }
+            @foreach (var genre in stats.GenreBreakdown.OrderByDescending(x => x.Value))
+            {
+                var pct = stats.TotalRecords == 0 ? 0 : (int)Math.Round(genre.Value * 100d / stats.TotalRecords);
+                <div class="bar-item"><div class="bar-label"><span>@genre.Key</span><b>@genre.Value</b></div><div class="progress"><div class="progress-bar" style="width: @pct%"></div></div></div>
+            }
+        </section>
+        <section class="panel breakdown-panel"><div class="panel-heading"><div><div class="eyebrow">THROUGH THE DECADES</div><h2>Release years</h2></div></div>
+            @if (stats.DecadeBreakdown.Count == 0) { <p class="muted-copy">Add release years to see your decade breakdown.</p> }
+            @foreach (var decade in stats.DecadeBreakdown.OrderByDescending(x => x.Value))
+            {
+                var pct = stats.TotalRecords == 0 ? 0 : (int)Math.Round(decade.Value * 100d / stats.TotalRecords);
+                <div class="bar-item"><div class="bar-label"><span>@decade.Key</span><b>@decade.Value</b></div><div class="progress"><div class="progress-bar warm-bar" style="width: @pct%"></div></div></div>
+            }
+        </section>
+    </div>
+    <div class="small-stat-row"><div><span>Most common genre</span><strong>@stats.MostCommonGenre</strong></div><div><span>Records played</span><strong>@State.Records.Count(x => x.PlayCount > 0)</strong></div><div><span>All-time spins</span><strong>@State.Records.Sum(x => x.PlayCount)</strong></div></div>
+}
+
+@code { protected override async Task OnInitializedAsync() => await RecordService.InitializeAsync(); }

@@ -1,0 +1,63 @@
+@page "/"
+@using RecordCollection.Models
+@inject IRecordService RecordService
+@inject IStatisticsService StatisticsService
+@inject CollectionState State
+
+<PageTitle>Collection overview · Needle Drop</PageTitle>
+@if (!State.IsLoaded)
+{
+    <LoadingSpinner Message="Opening your collection…" />
+}
+else
+{
+    var stats = StatisticsService.Calculate(State.Records);
+    <PageHeader Eyebrow="@DateTime.Now.ToString("dddd, MMMM d")" Title="Your collection, in rotation." Description="A home for the records you love and the stories behind them.">
+        <Actions><a class="btn btn-dark" href="/records/new">＋ Add a record</a></Actions>
+    </PageHeader>
+
+    <section class="stat-grid">
+        <div class="stat-card stat-card-primary"><div class="stat-label">IN THE CRATE</div><div class="stat-number">@stats.TotalRecords</div><div class="stat-foot">records collected <span>↗</span></div><div class="stat-watermark">♫</div></div>
+        <div class="stat-card"><div class="stat-label">ARTISTS</div><div class="stat-number">@stats.TotalArtists</div><div class="stat-foot">different voices</div><div class="stat-icon">◉</div></div>
+        <div class="stat-card"><div class="stat-label">GENRES</div><div class="stat-number">@stats.TotalGenres</div><div class="stat-foot">sounds in your orbit</div><div class="stat-icon">≋</div></div>
+        <div class="stat-card"><div class="stat-label">COLLECTION VALUE</div><div class="stat-number stat-currency">@stats.TotalCollectionValue.ToString("C0")</div><div class="stat-foot">across your collection</div><div class="stat-icon">$</div></div>
+    </section>
+
+    <div class="dashboard-grid">
+        <section class="panel">
+            <div class="panel-heading"><div><div class="eyebrow">FRESH FINDS</div><h2>Recently added</h2></div><a class="text-link" href="/records">See all →</a></div>
+            @if (State.Records.Count == 0)
+            {
+                <EmptyState Icon="✳" Title="Your crate is waiting" Message="Add your first record and start building your collection."><a class="btn btn-dark btn-sm" href="/records/new">Add first record</a></EmptyState>
+            }
+            else
+            {
+                <div class="mini-record-list">
+                    @foreach (var record in State.Records.OrderByDescending(x => x.PurchaseDate ?? DateTime.MinValue).Take(4))
+                    {
+                        <a class="mini-record" href="@($"/records/edit/{record.Id}")"><div class="mini-cover">@if (!string.IsNullOrEmpty(record.CoverImagePath)) { <img src="@record.CoverImagePath" alt="" /> } else { <span>♫</span> }</div><div class="mini-info"><strong>@record.AlbumTitle</strong><span>@record.Artist</span></div><span class="mini-year">@(record.ReleaseYear?.ToString() ?? "—")</span></a>
+                    }
+                </div>
+            }
+        </section>
+        <section class="panel recently-played-panel">
+            <div class="panel-heading"><div><div class="eyebrow">ON THE TURNTABLE</div><h2>Recently played</h2></div><a class="text-link" href="/records">Your records →</a></div>
+            @if (State.Records.Any(x => x.LastPlayed.HasValue))
+            {
+                @foreach (var record in State.Records.Where(x => x.LastPlayed.HasValue).OrderByDescending(x => x.LastPlayed).Take(4))
+                {
+                    <div class="played-item"><div class="played-disc">◉</div><div class="mini-info"><strong>@record.AlbumTitle</strong><span>@record.Artist</span></div><span class="played-date">@record.LastPlayed!.Value.ToString("MMM d")</span></div>
+                }
+            }
+            else
+            {
+                <div class="listening-empty"><div class="vinyl-mark">◉</div><p>No spins logged yet.</p><span>When you play a record, it’ll show up here.</span></div>
+            }
+            <div class="quick-actions"><div class="eyebrow">QUICK ACTIONS</div><a href="/records/new"><span>＋</span> Add a record <b>→</b></a><a href="/wishlist"><span>♡</span> Browse your wishlist <b>→</b></a><a href="/import-export"><span>↥</span> Import or export <b>→</b></a></div>
+        </section>
+    </div>
+}
+
+@code {
+    protected override async Task OnInitializedAsync() => await RecordService.InitializeAsync();
+}

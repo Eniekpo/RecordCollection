@@ -1,0 +1,118 @@
+is_global = true
+build_property.EnableAotAnalyzer = 
+build_property.EnableSingleFileAnalyzer = 
+build_property.EnableTrimAnalyzer = false
+build_property.IncludeAllContentForSelfExtract = 
+build_property.VerifyReferenceTrimCompatibility = 
+build_property.VerifyReferenceAotCompatibility = 
+build_property.TargetFramework = net10.0
+build_property.TargetFrameworkIdentifier = .NETCoreApp
+build_property.TargetFrameworkVersion = v10.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = 
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = false
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property.EntryPointFilePath = 
+build_property._SupportedPlatformList = browser
+build_property.RootNamespace = RecordCollection
+build_property.RootNamespace = RecordCollection
+build_property.ProjectDir = /Users/yoletech/RecordCollection/RecordCollection/
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = false
+build_property.RazorLangVersion = 10.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.MSBuildProjectDirectory = /Users/yoletech/RecordCollection/RecordCollection
+build_property._RazorSourceGeneratorDebug = 
+build_property.EffectiveAnalysisLevelStyle = 10.0
+build_property.EnableCodeStyleSeverity = 
+
+[/Users/yoletech/RecordCollection/RecordCollection/App.razor]
+build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/yoletech/RecordCollection/RecordCollection/Components/ConfirmationDialog.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9Db25maXJtYXRpb25EaWFsb2cucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/yoletech/RecordCollection/RecordCollection/Components/EmptyState.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9FbXB0eVN0YXRlLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/yoletech/RecordCollection/RecordCollection/Components/LoadingSpinner.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9Mb2FkaW5nU3Bpbm5lci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/yoletech/RecordCollection/RecordCollection/Components/PageHeader.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlSGVhZGVyLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/yoletech/RecordCollection/RecordCollection/Components/RatingControl.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9SYXRpbmdDb250cm9sLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/yoletech/RecordCollection/RecordCollection/Components/RecordCard.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9SZWNvcmRDYXJkLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/yoletech/RecordCollection/RecordCollection/Components/SearchBar.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9TZWFyY2hCYXIucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/yoletech/RecordCollection/RecordCollection/Components/TagEditor.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9UYWdFZGl0b3IucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/yoletech/RecordCollection/RecordCollection/Layout/MainLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = TGF5b3V0L01haW5MYXlvdXQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/yoletech/RecordCollection/RecordCollection/Layout/NavMenu.razor]
+build_metadata.AdditionalFiles.TargetPath = TGF5b3V0L05hdk1lbnUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/yoletech/RecordCollection/RecordCollection/Pages/Counter.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQ291bnRlci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/yoletech/RecordCollection/RecordCollection/Pages/Home.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvSG9tZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/yoletech/RecordCollection/RecordCollection/Pages/ImportExport.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvSW1wb3J0RXhwb3J0LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/yoletech/RecordCollection/RecordCollection/Pages/NotFound.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvTm90Rm91bmQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/yoletech/RecordCollection/RecordCollection/Pages/RecordForm.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvUmVjb3JkRm9ybS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/yoletech/RecordCollection/RecordCollection/Pages/Records.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvUmVjb3Jkcy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/yoletech/RecordCollection/RecordCollection/Pages/Settings.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvU2V0dGluZ3MucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/yoletech/RecordCollection/RecordCollection/Pages/Statistics.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvU3RhdGlzdGljcy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/yoletech/RecordCollection/RecordCollection/Pages/Weather.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvV2VhdGhlci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/yoletech/RecordCollection/RecordCollection/Pages/Wishlist.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvV2lzaGxpc3QucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/yoletech/RecordCollection/RecordCollection/_Imports.razor]
+build_metadata.AdditionalFiles.TargetPath = X0ltcG9ydHMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 

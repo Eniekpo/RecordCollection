@@ -1,0 +1,86 @@
+@page "/import-export"
+@using System.Text
+@using RecordCollection.Models
+@inject IRecordService RecordService
+@inject IImportExportService ImportExportService
+@inject IJsonStorageService Storage
+@inject CollectionState State
+@inject IJSRuntime JS
+@inject ILogger<ImportExport> Logger
+
+<PageTitle>Import & export · Needle Drop</PageTitle>
+<PageHeader Eyebrow="YOUR DATA, YOURS" Title="Import & export" Description="Move your collection in and out whenever you need. Everything stays on this device." />
+<div class="data-grid">
+    <section class="panel data-panel"><div class="data-icon export-icon">↧</div><div class="eyebrow">TAKE IT WITH YOU</div><h2>Export your collection</h2><p>Download a copy to keep safe or move to another device.</p><div class="data-actions"><button class="btn btn-dark" @onclick="ExportJsonAsync">↓ Export as JSON</button><button class="btn btn-outline-secondary" @onclick="ExportCsvAsync">↓ Export as CSV</button></div><div class="form-hint">@State.Records.Count records ready to export.</div></section>
+    <section class="panel data-panel"><div class="data-icon import-icon">↥</div><div class="eyebrow">BRING IT IN</div><h2>Import records</h2><p>Choose a JSON backup or CSV file. Existing records will be checked for duplicates.</p><InputFile OnChange="ImportAsync" accept=".json,.csv,application/json,text/csv" class="form-control import-input" /><div class="form-hint">JSON or CSV · records need artist and album title.</div>
+        @if (importResult is not null)
+        {
+            <div class="import-result @(importResult.Value.Errors.Count > 0 ? "has-warning" : "")"><strong>@importResult.Value.Records.Count record(s) ready to add</strong>@if (importResult.Value.Duplicates > 0) { <span>@importResult.Value.Duplicates duplicate(s) skipped</span> }@foreach (var error in importResult.Value.Errors.Take(5)) { <span class="import-error">@error</span> }@if (importResult.Value.Records.Count > 0) { <button class="btn btn-sm btn-dark mt-2" @onclick="ApplyImportAsync">Add @importResult.Value.Records.Count records</button> }</div>
+        }
+    </section>
+</div>
+<section class="backup-banner"><div class="backup-symbol">◷</div><div><strong>Good collections deserve a backup.</strong><p>Create a snapshot of your records and settings at any time.</p></div><button class="btn btn-outline-dark" @onclick="CreateBackupAsync">Create backup</button></section>
+@if (!string.IsNullOrEmpty(message)) { <div class="alert alert-success mt-3">@message</div> }
+
+@code {
+    private (List<VinylRecord> Records, List<string> Errors, int Duplicates)? importResult;
+    private string? message;
+    protected override async Task OnInitializedAsync() => await RecordService.InitializeAsync();
+
+    private async Task ExportJsonAsync()
+    {
+        await JS.InvokeVoidAsync("needleDrop.download", "needle-drop-collection.json", "application/json", ImportExportService.ExportJson(State.Data));
+    }
+    private async Task ExportCsvAsync()
+    {
+        await JS.InvokeVoidAsync("needleDrop.download", "needle-drop-records.csv", "text/csv", ImportExportService.ExportCsv(State.Records));
+    }
+    private async Task ImportAsync(InputFileChangeEventArgs args)
+    {
+        try
+        {
+            await using var stream = args.File.OpenReadStream(10_000_000);
+            using var reader = new StreamReader(stream, Encoding.UTF8);
+            var text = await reader.ReadToEndAsync();
+            importResult = args.File.Name.EndsWith(".json", StringComparison.OrdinalIgnoreCase)
+                ? ImportExportService.ImportJson(text, State.Records)
+                : ImportExportService.ImportCsv(text, State.Records);
+            message = null;
+        }
+        catch (Exception exception) when (exception is IOException or InvalidOperationException)
+        {
+            Logger.LogWarning(exception, "Could not read selected import file.");
+            message = $"Could not read the file: {exception.Message}";
+        }
+    }
+    private async Task ApplyImportAsync()
+    {
+        if (importResult is null) return;
+        try
+        {
+            var nextData = new CollectionData
+            {
+                Records = [.. State.Records, .. importResult.Value.Records],
+                Wishlist = [.. State.Wishlist],
+                Settings = State.Settings
+            };
+            await Storage.SaveAsync(nextData);
+            State.Load(nextData);
+            State.MarkSaved();
+            message = $"Imported {importResult.Value.Records.Count} record(s).";
+            importResult = null;
+        }
+        catch (Exception exception) { Logger.LogError(exception, "Failed to save imported records."); message = "The import could not be saved. Please try exporting a backup before trying again."; }
+    }
+    private async Task CreateBackupAsync()
+    {
+        try
+        {
+            await BackupService.CreateBackupAsync();
+            message = "Backup saved in this browser.";
+        }
+        catch (Exception exception) { Logger.LogError(exception, "Could not create backup."); message = "Could not create backup. Check that browser storage is available."; }
+    }
+
+    [Inject] private IBackupService BackupService { get; set; } = default!;
+}

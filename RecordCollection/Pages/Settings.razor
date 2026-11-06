@@ -1,0 +1,58 @@
+@page "/settings"
+@using RecordCollection.Models
+@inject IRecordService RecordService
+@inject ISettingsService SettingsService
+@inject IBackupService BackupService
+@inject CollectionState State
+@inject IJSRuntime JS
+@inject ILogger<Settings> Logger
+
+<PageTitle>Settings · Needle Drop</PageTitle>
+<PageHeader Eyebrow="MAKE IT YOURS" Title="Settings" Description="A few preferences for the way you collect." />
+<section class="panel settings-panel">
+    <div class="settings-section"><div class="settings-copy"><div class="eyebrow">PREFERENCES</div><h2>Collection defaults</h2><p>Choose how your collection is organized.</p></div>
+        <div class="settings-controls"><label class="form-label">Default sort order</label><select class="form-select" @bind="settings.DefaultSortOrder"><option>Artist</option><option>Album</option><option>Year</option><option>Purchase Date</option><option>Purchase Price</option><option>Rating</option></select><div class="form-hint">Used as the starting sort on your records page.</div></div>
+    </div>
+    <hr />
+    <div class="settings-section"><div class="settings-copy"><div class="eyebrow">BACKUPS</div><h2>Automatic snapshots</h2><p>Keep a recent copy of your collection in this browser.</p></div><div class="settings-controls"><label class="toggle-row"><input type="checkbox" class="form-check-input" @bind="settings.AutoBackupEnabled" /><span><strong>Enable automatic backups</strong><small>Save a backup snapshot when your collection changes.</small></span></label><div class="form-hint">Backup storage: @settings.BackupLocation · up to 10 snapshots</div></div></div>
+    <hr />
+    <div class="settings-section backup-settings"><div class="settings-copy"><div class="eyebrow">RESTORE</div><h2>Saved snapshots</h2><p>Restore or remove one of your previous collection backups.</p></div><div class="settings-controls">
+        @if (backups.Count == 0) { <span class="muted-copy">No snapshots yet. Save one from Import &amp; export.</span> }
+        @for (var index = 0; index < backups.Count; index++)
+        {
+            var backupIndex = index;
+            var data = backups[index];
+            <div class="backup-row"><span><strong>Collection snapshot @(backups.Count - index)</strong><small>@data.Length.ToString("N0") bytes · saved in browser storage</small></span><button class="btn btn-sm btn-outline-secondary" @onclick="() => RestoreAsync(data)">Restore</button><button class="btn btn-sm btn-link text-danger" @onclick="() => DeleteBackupAsync(backupIndex)">Delete</button></div>
+        }
+    </div></div>
+    <div class="form-footer"><span class="form-hint">Changes save automatically.</span><button class="btn btn-dark" @onclick="SaveAsync">Save preferences</button></div>
+</section>
+@if (!string.IsNullOrEmpty(message)) { <div class="alert alert-success mt-3">@message</div> }
+
+@code {
+    private CollectionSettings settings = new();
+    private IReadOnlyList<string> backups = [];
+    private string? message;
+    protected override async Task OnInitializedAsync()
+    {
+        await RecordService.InitializeAsync();
+        settings = new CollectionSettings { AutoBackupEnabled = State.Settings.AutoBackupEnabled, BackupLocation = State.Settings.BackupLocation, DefaultSortOrder = State.Settings.DefaultSortOrder };
+        backups = await BackupService.ListBackupsAsync();
+    }
+    private async Task SaveAsync()
+    {
+        try { await SettingsService.SaveAsync(settings); message = "Preferences saved."; }
+        catch (Exception exception) { Logger.LogError(exception, "Could not save settings."); message = "Settings could not be saved."; }
+    }
+    private async Task RestoreAsync(string json)
+    {
+        if (!await JS.InvokeAsync<bool>("confirm", "Restore this snapshot? Your current collection will be replaced.")) return;
+        try { await BackupService.RestoreBackupAsync(json); settings = State.Settings; message = "Snapshot restored."; }
+        catch (Exception exception) { Logger.LogError(exception, "Could not restore backup."); message = "This backup could not be restored."; }
+    }
+    private async Task DeleteBackupAsync(int index)
+    {
+        await BackupService.DeleteBackupAsync(index);
+        backups = await BackupService.ListBackupsAsync();
+    }
+}
